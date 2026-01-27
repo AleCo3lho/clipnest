@@ -4,12 +4,48 @@ Your cozy clipboard manager for macOS. Keep track of your clipboard history, pin
 
 ## Features
 
-✅ **In-Memory Storage** - Recent clips (last 50) stored in RAM for instant access  
-✅ **Persistent Storage** - Pin important clips to SQLite for permanent storage  
-✅ **Real-Time Updates** - Unix socket for instant UI synchronization  
-✅ **CLI Interface** - Full command-line control  
-✅ **Privacy First** - Temporary clips never touch disk  
-✅ **Deduplication** - Automatically skips duplicate clips  
+✅ **In-Memory Storage** - Recent clips (last 50) stored in RAM for instant access
+✅ **Persistent Storage** - Pin important clips to SQLite for permanent storage
+✅ **Real-Time Updates** - Unix socket for instant UI synchronization
+✅ **CLI Interface** - Full command-line control
+✅ **Privacy First** - Temporary clips never touch disk
+✅ **Deduplication** - Automatically skips duplicate clips
+
+## Installation
+
+### Homebrew (Recommended)
+```bash
+brew tap AleCo3lho/homebrew-clipnest
+brew install clipnest
+
+# Start daemon
+clipnestd
+
+# Use CLI
+clipnest list
+```
+
+### Manual Build
+
+#### Prerequisites
+- Go 1.23+
+- SQLite3
+
+```bash
+# Clone repository
+git clone https://github.com/AleCo3lho/clipnest.git
+cd clipnest
+
+# Build binaries
+go build -o clipnest ./cmd/clipnest
+go build -o clipnestd ./cmd/clipnestd
+
+# Move to PATH
+sudo mv clipnest clipnestd /usr/local/bin/
+
+# Start daemon
+clipnestd
+```
 
 ## Quick Start
 
@@ -109,6 +145,51 @@ Unix socket at `/tmp/clipnest.sock` for real-time communication:
 ```
 
 ## Development
+
+### Prerequisites
+- Go 1.23+
+- SQLite3
+
+### Setup
+```bash
+# Clone repository
+git clone https://github.com/AleCo3lho/clipnest.git
+cd clipnest
+
+# Install dependencies
+go mod tidy
+
+# Run tests
+go test -v ./...
+
+# Run tests with coverage
+go test -cover ./...
+
+# Build binaries
+go build -o clipnest ./cmd/clipnest
+go build -o clipnestd ./cmd/clipnestd
+```
+
+### Testing
+```bash
+# Run all tests
+go test -v ./...
+
+# Run tests with race detector
+go test -race ./...
+
+# Run tests with coverage
+go test -cover ./...
+
+# Run specific package tests
+go test -v ./internal/storage
+```
+
+### CI/CD
+- **CI**: Runs on every push/PR - tests all packages
+- **Release**: Triggers on version tags (v*) - builds macOS binaries
+
+## Contributing
 
 ### Dependencies
 
