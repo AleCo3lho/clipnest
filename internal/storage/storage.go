@@ -7,8 +7,9 @@ import (
 
 // Storage provides in-memory clipboard storage
 type Storage struct {
-	memory *MemoryStore
+	memory   *MemoryStore
 	maxMemory int
+	mu       sync.RWMutex
 }
 
 // NewStorage creates a new in-memory storage
