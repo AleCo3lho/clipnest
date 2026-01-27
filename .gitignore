@@ -26,11 +26,6 @@ go.work
 .DS_Store
 Thumbs.db
 
-# Database
-*.db
-*.db-shm
-*.db-wal
-
 # Socket
 *.sock
 

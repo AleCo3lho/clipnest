@@ -5,32 +5,22 @@ Your cozy clipboard manager for macOS. Keep track of your clipboard history, pin
 ## Features
 
 ✅ **In-Memory Storage** - Recent clips (last 50) stored in RAM for instant access
-✅ **Persistent Storage** - Pin important clips to SQLite for permanent storage
+✅ **Pin Important Clips** - Mark important clips for easy access
 ✅ **Real-Time Updates** - Unix socket for instant UI synchronization
 ✅ **CLI Interface** - Full command-line control
-✅ **Privacy First** - Temporary clips never touch disk
+✅ **Privacy First** - Clips are only in memory (no disk I/O)
 ✅ **Deduplication** - Automatically skips duplicate clips
 
 ## Installation
 
-### Homebrew (Recommended)
-```bash
-brew tap AleCo3lho/homebrew-clipnest
-brew install clipnest
-
-# Start daemon
-clipnestd
-
-# Use CLI
-clipnest list
-```
+## Installation
 
 ### Manual Build
 
 #### Prerequisites
 - Go 1.23+
-- SQLite3
 
+#### macOS
 ```bash
 # Clone repository
 git clone https://github.com/AleCo3lho/clipnest.git
@@ -45,6 +35,31 @@ sudo mv clipnest clipnestd /usr/local/bin/
 
 # Start daemon
 clipnestd
+```
+
+#### Linux
+```bash
+# Clone repository
+git clone https://github.com/AleCo3lho/clipnest.git
+cd clipnest
+
+# Build binaries
+go build -o clipnest ./cmd/clipnest
+go build -o clipnestd ./cmd/clipnestd
+
+# Move to PATH
+sudo mv clipnest clipnestd /usr/local/bin/
+
+# Start daemon
+clipnestd
+```
+
+### Build
+
+```bash
+# Build daemon and CLI
+go build -o clipnestd ./cmd/clipnestd
+go build -o clipnest ./cmd/clipnest
 ```
 
 ## Quick Start
