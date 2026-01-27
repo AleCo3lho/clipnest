@@ -33,13 +33,17 @@ jobs:
       with:
         go-version: '1.23'
 
+    - name: Install SQLite
+      run: |
+        brew install sqlite3
+
     - name: Build CLI
       run: |
-        CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnest-${{ matrix.suffix }} ./cmd/clipnest
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnest-${{ matrix.suffix }} ./cmd/clipnest
 
     - name: Build Daemon
       run: |
-        CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnestd-${{ matrix.suffix }} ./cmd/clipnestd
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnestd-${{ matrix.suffix }} ./cmd/clipnestd
 
     - name: Upload Binaries
       uses: actions/upload-artifact@v4
@@ -57,7 +61,7 @@ jobs:
     - name: Download Artifacts
       uses: actions/download-artifact@v4
       with:
-        path: artifacts
+        path: .
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
