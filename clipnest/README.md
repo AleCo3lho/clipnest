@@ -1,0 +1,147 @@
+# ClipNest 🪹
+
+Your cozy clipboard manager for macOS. Keep track of your clipboard history, pin important clips, and never lose anything you've copied again.
+
+## Features
+
+✅ **In-Memory Storage** - Recent clips (last 50) stored in RAM for instant access  
+✅ **Persistent Storage** - Pin important clips to SQLite for permanent storage  
+✅ **Real-Time Updates** - Unix socket for instant UI synchronization  
+✅ **CLI Interface** - Full command-line control  
+✅ **Privacy First** - Temporary clips never touch disk  
+✅ **Deduplication** - Automatically skips duplicate clips  
+
+## Quick Start
+
+### Build
+
+```bash
+# Build daemon and CLI
+go build -o clipnestd ./cmd/clipnestd
+go build -o clipnest ./cmd/clipnest
+
+# Move to PATH
+sudo cp clipnestd clipnest /usr/local/bin/
+```
+
+### Run
+
+```bash
+# Start the daemon
+clipnestd
+
+# In another terminal, list clips
+clipnest list
+
+# Search clips
+clipnest search "api"
+
+# Copy a clip
+clipnest copy 5
+
+# Pin an important clip
+clipnest pin 5
+
+# List pinned clips
+clipnest pins
+```
+
+## CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `clipnest list [limit]` | List recent clips |
+| `clipnest search <query>` | Search clips |
+| `clipnest copy <id>` | Copy clip to clipboard |
+| `clipnest pin <id>` | Pin clip (persist) |
+| `clipnest unpin <id>` | Unpin clip |
+| `clipnest pins` | List pinned clips |
+| `clipnest clear` | Clear all clips |
+| `clipnest version` | Show version |
+
+## Architecture
+
+```
+clipnest/
+├── cmd/
+│   ├── clipnest/           ← CLI tool
+│   └── clipnestd/          ← Background daemon
+├── internal/
+│   ├── clipboard/          ← Clipboard monitoring
+│   ├── storage/           ← Hybrid storage (memory + SQLite)
+│   ├── socket/            ← Unix domain socket
+│   └── config/             ← Configuration
+└── swift/                 ← Future Swift UI app
+```
+
+### Storage Strategy
+
+- **In-Memory**: Recent clips (default: last 50)
+  - Fast access
+  - Auto-evicts oldest clips
+  - Session-only by default
+  - No disk I/O
+
+- **SQLite**: Pinned clips only
+  - User must explicitly pin
+  - Persists across restarts
+  - Searchable
+  - Location: `~/Library/Application Support/ClipNest/clipnest.db`
+
+### Socket Protocol
+
+Unix socket at `/tmp/clipnest.sock` for real-time communication:
+
+**Daemon → UI (events)**:
+```json
+{"type":"new_clip","data":{"id":1,"content":"text","type":"text","timestamp":1234567890,"pinned":false}}
+{"type":"clipboard_changed","data":{"id":1}}
+{"type":"clip_updated","data":{...}}
+```
+
+**UI → Daemon (commands)**:
+```json
+{"type":"copy_clip","data":{"id":1}}
+{"type":"pin","data":{"id":1}}
+{"type":"unpin","data":{"id":1}}
+{"type":"list","data":{"limit":100}}
+{"type":"search","data":{"query":"api","limit":50}}
+```
+
+## Development
+
+### Dependencies
+
+```bash
+go mod tidy
+go mod download
+```
+
+### Testing
+
+```bash
+# Run tests
+go test ./...
+
+# Run with coverage
+go test -cover ./...
+```
+
+## Future Plans
+
+- [ ] Swift UI app for macOS
+- [ ] Image clipboard support
+- [ ] File path clipboard support
+- [ ] Fuzzy search
+- [ ] Global hotkey
+- [ ] System tray icon
+- [ ] Export/import clips
+- [ ] Homebrew formula
+
+## License
+
+MIT License - feel free to use this for your own projects!
+
+---
+
+Built with ❤️ using Go
