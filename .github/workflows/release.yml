@@ -35,11 +35,11 @@ jobs:
 
     - name: Build CLI
       run: |
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnest-${{ matrix.suffix }} ./cmd/clipnest
+        CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnest-${{ matrix.suffix }} ./cmd/clipnest
 
     - name: Build Daemon
       run: |
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnestd-${{ matrix.suffix }} ./cmd/clipnestd
+        CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o clipnestd-${{ matrix.suffix }} ./cmd/clipnestd
 
     - name: Upload Binaries
       uses: actions/upload-artifact@v4
@@ -63,8 +63,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          artifacts/clipnest-darwin-amd64/*
-          artifacts/clipnest-darwin-arm64/*
+          clipnest-darwin-amd64/*
+          clipnest-darwin-arm64/*
         draft: false
         prerelease: false
         generate_release_notes: true
