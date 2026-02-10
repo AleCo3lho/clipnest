@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ClipNest is a privacy-first macOS/Linux clipboard manager written in Go. It features in-memory storage (no disk I/O by default), real-time synchronization via Unix domain sockets, and automatic deduplication. It consists of a CLI tool (`clipnest`) and a background daemon (`clipnestd`), though the `cmd/` entry points are not yet implemented.
+ClipNest is a privacy-first macOS/Linux clipboard manager written in Go with a native SwiftUI menu bar app. It features in-memory storage (no disk I/O by default), real-time synchronization via Unix domain sockets, and automatic deduplication. It consists of a CLI tool (`clipnest`), a background daemon (`clipnestd`), and a macOS menu bar app (`app/ClipNest/`).
 
 ## Build & Test Commands
 
@@ -22,6 +22,8 @@ make test         # Tests with race detection and coverage
 make build        # Build binaries to bin/
 make clean        # Remove artifacts
 make tidy         # go mod tidy
+make app          # Build macOS menu bar app (requires Xcode 26)
+make app-run      # Build and launch the menu bar app
 
 # Run tests for a specific package
 go test -v ./internal/storage
@@ -40,6 +42,8 @@ All application code lives under `internal/` in four packages:
 - **socket** — Unix domain socket server at `/tmp/clipnest.sock` for IPC between daemon and clients. Line-delimited JSON protocol. Broadcasts events to all connected clients. Thread-safe client management.
 
 - **config** — Hardcoded defaults (50 clips max, socket path, data directory). Placeholder for future file-based configuration.
+
+- **app/ClipNest** — Native macOS SwiftUI menu bar app. Connects to the daemon via Unix socket using `Network.framework`. Uses `#available(macOS 26, *)` for Liquid Glass effects with `.ultraThinMaterial` fallback on macOS 15+. Built with `make app` via `build.sh` which compiles, bundles, generates the `.icns` icon, and ad-hoc codesigns.
 
 The central data model is `Clip` (ID, Content, Type, Timestamp, Pinned) defined in `storage/models.go`. Socket messages use `SocketMessage` with JSON serialization.
 
