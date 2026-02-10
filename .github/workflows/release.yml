@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
     - uses: actions/checkout@v4
 
@@ -33,11 +33,6 @@ jobs:
           GOOS=$os GOARCH=$arch go build -ldflags="-s -w" -o "clipnestd-${os}-${arch}" ./cmd/clipnestd
           tar czf "clipnest-${os}-${arch}.tar.gz" "clipnest-${os}-${arch}" "clipnestd-${os}-${arch}"
         done
-
-    - name: Set up Swift
-      uses: swift-actions/setup-swift@v3
-      with:
-        swift-version: "6.2"
 
     - name: Build Swift app
       run: |
