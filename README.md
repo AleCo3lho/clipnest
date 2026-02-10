@@ -1,160 +1,131 @@
-# ClipNest 🪹
+# ClipNest
 
-Your cozy clipboard manager for macOS. Keep track of your clipboard history, pin important clips, and never lose anything you've copied again.
+A privacy-first clipboard manager for macOS and Linux. Keep track of your clipboard history, pin important clips, and never lose anything you've copied again.
 
 ## Features
 
-✅ **In-Memory Storage** - Recent clips (last 50) stored in RAM for instant access
-✅ **Pin Important Clips** - Mark important clips for easy access
-✅ **Real-Time Updates** - Unix socket for instant UI synchronization
-✅ **CLI Interface** - Full command-line control
-✅ **Privacy First** - Clips are only in memory (no disk I/O)
-✅ **Deduplication** - Automatically skips duplicate clips
+- **Menu Bar App** - Native macOS SwiftUI app with Liquid Glass effects (macOS 26+) and material fallback (macOS 15+)
+- **In-Memory Storage** - Recent clips (last 50) stored in RAM for instant access, no disk I/O
+- **Pin Important Clips** - Mark clips to protect them from eviction
+- **Real-Time Updates** - Unix socket IPC for instant synchronization between daemon and clients
+- **CLI Interface** - Full command-line control over your clipboard history
+- **Deduplication** - Automatically skips duplicate clips
+- **Homebrew Support** - Install with `brew install` or `brew install --cask`
 
 ## Installation
 
-## Installation
+### Homebrew (recommended)
+
+```bash
+brew tap AleCo3lho/clipnest
+```
+
+Install the GUI app (includes CLI + daemon):
+
+```bash
+brew install --cask clipnest-app
+```
+
+Or install just the CLI and daemon (no GUI):
+
+```bash
+brew install clipnest
+brew services start clipnest
+```
 
 ### Manual Build
 
-#### Prerequisites
-- Go 1.23+
+Prerequisites: Go 1.23+, Swift 6.2+ (for the macOS app)
 
-#### macOS
 ```bash
-# Clone repository
 git clone https://github.com/AleCo3lho/clipnest.git
 cd clipnest
 
-# Build binaries
-go build -o clipnest ./cmd/clipnest
-go build -o clipnestd ./cmd/clipnestd
+# Build Go binaries
+make build
 
-# Move to PATH
-sudo mv clipnest clipnestd /usr/local/bin/
+# Build macOS menu bar app (requires macOS with Xcode 26)
+make app
 
-# Start daemon
-clipnestd
-```
-
-#### Linux
-```bash
-# Clone repository
-git clone https://github.com/AleCo3lho/clipnest.git
-cd clipnest
-
-# Build binaries
-go build -o clipnest ./cmd/clipnest
-go build -o clipnestd ./cmd/clipnestd
-
-# Move to PATH
-sudo mv clipnest clipnestd /usr/local/bin/
-
-# Start daemon
-clipnestd
-```
-
-### Build
-
-```bash
-# Build daemon and CLI
-go build -o clipnestd ./cmd/clipnestd
-go build -o clipnest ./cmd/clipnest
-```
-
-## Quick Start
-
-### Build
-
-```bash
-# Build daemon and CLI
-go build -o clipnestd ./cmd/clipnestd
-go build -o clipnest ./cmd/clipnest
-
-# Move to PATH
-sudo cp clipnestd clipnest /usr/local/bin/
-```
-
-### Run
-
-```bash
 # Start the daemon
-clipnestd
-
-# In another terminal, list clips
-clipnest list
-
-# Search clips
-clipnest search "api"
-
-# Copy a clip
-clipnest copy 5
-
-# Pin an important clip
-clipnest pin 5
-
-# List pinned clips
-clipnest pins
+./bin/clipnestd
 ```
 
-## CLI Commands
+## Usage
+
+### Menu Bar App
+
+The ClipNest menu bar app lives in your macOS menu bar. It shows your clipboard history, lets you search, pin, and copy clips with a single click. The daemon starts automatically when you install via Homebrew.
+
+### CLI Commands
 
 | Command | Description |
 |---------|-------------|
 | `clipnest list [limit]` | List recent clips |
 | `clipnest search <query>` | Search clips |
 | `clipnest copy <id>` | Copy clip to clipboard |
-| `clipnest pin <id>` | Pin clip (persist) |
+| `clipnest pin <id>` | Pin clip |
 | `clipnest unpin <id>` | Unpin clip |
 | `clipnest pins` | List pinned clips |
 | `clipnest clear` | Clear all clips |
 | `clipnest version` | Show version |
+
+### Quick Start (CLI)
+
+```bash
+# Start the daemon (or use brew services)
+clipnestd &
+
+# List recent clips
+clipnest list
+
+# Search clips
+clipnest search "api"
+
+# Copy a clip back to clipboard
+clipnest copy 5
+
+# Pin an important clip
+clipnest pin 5
+```
 
 ## Architecture
 
 ```
 clipnest/
 ├── cmd/
-│   ├── clipnest/           ← CLI tool
-│   └── clipnestd/          ← Background daemon
+│   ├── clipnest/              # CLI tool
+│   └── clipnestd/             # Background daemon
 ├── internal/
-│   ├── clipboard/          ← Clipboard monitoring
-│   ├── storage/           ← Hybrid storage (memory + SQLite)
-│   ├── socket/            ← Unix domain socket
-│   └── config/             ← Configuration
-└── swift/                 ← Future Swift UI app
+│   ├── clipboard/             # Clipboard monitoring
+│   ├── storage/               # In-memory LRU storage
+│   ├── socket/                # Unix domain socket IPC
+│   └── config/                # Configuration
+├── app/ClipNest/              # macOS SwiftUI menu bar app
+│   ├── Sources/
+│   │   ├── Models/            # Clip data model
+│   │   ├── Networking/        # Daemon socket client
+│   │   ├── ViewModels/        # UI state management
+│   │   ├── Views/             # SwiftUI views
+│   │   └── Utilities/         # Helpers
+│   └── Resources/             # Info.plist, app icon
+└── homebrew/                  # Homebrew formula + cask templates
 ```
 
-### Storage Strategy
+### How It Works
 
-- **In-Memory**: Recent clips (default: last 50)
-  - Fast access
-  - Auto-evicts oldest clips
-  - Session-only by default
-  - No disk I/O
-
-- **SQLite**: Pinned clips only
-  - User must explicitly pin
-  - Persists across restarts
-  - Searchable
-  - Location: `~/Library/Application Support/ClipNest/clipnest.db`
+1. **clipnestd** (daemon) monitors the system clipboard, stores clips in an LRU cache (default: 50 clips), and serves them over a Unix socket at `/tmp/clipnest.sock`
+2. **clipnest** (CLI) or **ClipNest.app** (menu bar) connects to the daemon socket to list, search, copy, and pin clips
+3. Pinned clips are exempt from LRU eviction
+4. All storage is in-memory only - nothing is written to disk
 
 ### Socket Protocol
 
-Unix socket at `/tmp/clipnest.sock` for real-time communication:
+Line-delimited JSON over Unix socket at `/tmp/clipnest.sock`:
 
-**Daemon → UI (events)**:
 ```json
 {"type":"new_clip","data":{"id":1,"content":"text","type":"text","timestamp":1234567890,"pinned":false}}
-{"type":"clipboard_changed","data":{"id":1}}
-{"type":"clip_updated","data":{...}}
-```
-
-**UI → Daemon (commands)**:
-```json
 {"type":"copy_clip","data":{"id":1}}
-{"type":"pin","data":{"id":1}}
-{"type":"unpin","data":{"id":1}}
 {"type":"list","data":{"limit":100}}
 {"type":"search","data":{"query":"api","limit":50}}
 ```
@@ -162,82 +133,40 @@ Unix socket at `/tmp/clipnest.sock` for real-time communication:
 ## Development
 
 ### Prerequisites
+
 - Go 1.23+
-- SQLite3
+- Swift 6.2+ / Xcode 26 (for macOS menu bar app)
 
-### Setup
+### Build & Test
+
 ```bash
-# Clone repository
-git clone https://github.com/AleCo3lho/clipnest.git
-cd clipnest
+# Full quality gate (fmt, vet, lint, test)
+make check
 
-# Install dependencies
-go mod tidy
+# Build everything
+make build     # Go binaries
+make app       # macOS menu bar app
 
 # Run tests
-go test -v ./...
+make test
 
-# Run tests with coverage
-go test -cover ./...
-
-# Build binaries
-go build -o clipnest ./cmd/clipnest
-go build -o clipnestd ./cmd/clipnestd
-```
-
-### Testing
-```bash
-# Run all tests
-go test -v ./...
-
-# Run tests with race detector
-go test -race ./...
-
-# Run tests with coverage
-go test -cover ./...
-
-# Run specific package tests
-go test -v ./internal/storage
+# See all targets
+make help
 ```
 
 ### CI/CD
-- **CI**: Runs on every push/PR - tests all packages
-- **Release**: Triggers on version tags (v*) - builds macOS binaries
 
-## Contributing
-
-### Dependencies
-
-```bash
-go mod tidy
-go mod download
-```
-
-### Testing
-
-```bash
-# Run tests
-go test ./...
-
-# Run with coverage
-go test -cover ./...
-```
+- **CI** (`ci.yml`): Runs on every push/PR - Go tests + linting (ubuntu), Swift build (macos-26)
+- **Release** (`release.yml`): Triggers on `v*` tags - builds Go binaries + Swift app, creates GitHub release, updates Homebrew tap
 
 ## Future Plans
 
-- [ ] Swift UI app for macOS
 - [ ] Image clipboard support
 - [ ] File path clipboard support
 - [ ] Fuzzy search
 - [ ] Global hotkey
-- [ ] System tray icon
 - [ ] Export/import clips
-- [ ] Homebrew formula
 
 ## License
 
 MIT License - feel free to use this for your own projects!
-
----
-
-Built with ❤️ using Go
