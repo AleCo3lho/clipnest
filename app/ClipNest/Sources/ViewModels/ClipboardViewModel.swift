@@ -7,6 +7,7 @@ final class ClipboardViewModel: ObservableObject {
     @Published var searchQuery = ""
     @Published var isConnected = false
     @Published var hoveredClip: Clip? = nil
+    @Published var now = Date()
 
     private let client = DaemonClient()
     private var broadcastTask: Task<Void, Never>?
@@ -54,6 +55,14 @@ final class ClipboardViewModel: ObservableObject {
                         await loadClips()
                     }
                 }
+            }
+        }
+
+        // Update relative timestamps every minute
+        Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                self.now = Date()
             }
         }
     }

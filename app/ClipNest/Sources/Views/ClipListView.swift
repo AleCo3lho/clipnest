@@ -14,7 +14,7 @@ struct ClipListView: View {
     var body: some View {
         HStack(spacing: 0) {
             if let hoveredClip = viewModel.hoveredClip {
-                PreviewPanelView(clip: hoveredClip, onCopy: { viewModel.copyClip(hoveredClip) })
+                PreviewPanelView(clip: hoveredClip, now: viewModel.now, onCopy: { viewModel.copyClip(hoveredClip) })
                     .frame(width: 308)
                     .padding(.leading, 6)
                     .padding(.vertical, 6)
@@ -62,6 +62,7 @@ struct ClipListView: View {
                                 ClipRowView(
                                     clip: clip,
                                     isHovered: viewModel.hoveredClip?.id == clip.id,
+                                    now: viewModel.now,
                                     onCopy: { viewModel.copyClip(clip) },
                                     onTogglePin: { viewModel.togglePin(clip) },
                                     onHover: { hovering in
@@ -79,6 +80,7 @@ struct ClipListView: View {
                                 ClipRowView(
                                     clip: clip,
                                     isHovered: viewModel.hoveredClip?.id == clip.id,
+                                    now: viewModel.now,
                                     onCopy: { viewModel.copyClip(clip) },
                                     onTogglePin: { viewModel.togglePin(clip) },
                                     onHover: { hovering in

@@ -3,6 +3,7 @@ import SwiftUI
 struct ClipRowView: View {
     let clip: Clip
     let isHovered: Bool
+    let now: Date
     let onCopy: () -> Void
     let onTogglePin: () -> Void
     let onHover: (Bool) -> Void
@@ -24,7 +25,7 @@ struct ClipRowView: View {
                         .background(.quaternary)
                         .clipShape(Capsule())
 
-                    Text(clip.date, style: .relative)
+                    Text(RelativeTimeFormatter.string(for: clip.date, relativeTo: now))
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
