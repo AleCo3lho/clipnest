@@ -90,21 +90,33 @@ func (m *MemoryStore) Remove(id int64) bool {
 	return true
 }
 
-// EvictOldest removes the oldest clip
+// Update writes a modified Clip back into its list element by ID, preserving LRU position
+func (m *MemoryStore) Update(clip Clip) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	elem, exists := m.elements[clip.ID]
+	if !exists {
+		return false
+	}
+
+	elem.Value = clip
+	return true
+}
+
+// EvictOldest removes the oldest unpinned clip, skipping pinned ones
 func (m *MemoryStore) EvictOldest() bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if m.order.Len() == 0 {
-		return false
-	}
-
-	oldest := m.order.Back()
-	if oldest != nil {
-		clip := oldest.Value.(Clip)
-		m.order.Remove(oldest)
-		delete(m.elements, clip.ID)
-		return true
+	// Walk from back (oldest) toward front, skip pinned clips
+	for elem := m.order.Back(); elem != nil; elem = elem.Prev() {
+		clip := elem.Value.(Clip)
+		if !clip.Pinned {
+			m.order.Remove(elem)
+			delete(m.elements, clip.ID)
+			return true
+		}
 	}
 
 	return false

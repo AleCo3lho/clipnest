@@ -45,3 +45,16 @@ type SearchCommand struct {
 type ListCommand struct {
 	Limit int `json:"limit"`
 }
+
+// ResponseMessage wraps all daemon responses
+type ResponseMessage struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+}
+
+// ClipListData is the response payload for list/search/pins
+type ClipListData struct {
+	Clips []ClipData `json:"clips"`
+	Count int        `json:"count"`
+}

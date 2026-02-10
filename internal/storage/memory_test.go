@@ -131,6 +131,80 @@ func TestMemoryStore_Clear(t *testing.T) {
 	}
 }
 
+func TestMemoryStore_Update(t *testing.T) {
+	store := NewMemoryStore()
+
+	clip := Clip{
+		Content:   "test content",
+		Type:      "text",
+		Timestamp: time.Now(),
+	}
+
+	id, _ := store.Add(clip)
+
+	// Retrieve, modify, and update
+	retrieved, _ := store.Get(id)
+	retrieved.Pinned = true
+	updated := store.Update(retrieved)
+	if !updated {
+		t.Fatal("Expected Update to return true")
+	}
+
+	// Verify the change persisted
+	after, _ := store.Get(id)
+	if !after.Pinned {
+		t.Fatal("Expected clip to be pinned after Update")
+	}
+}
+
+func TestMemoryStore_Update_NotFound(t *testing.T) {
+	store := NewMemoryStore()
+
+	clip := Clip{ID: 999, Content: "nope"}
+	if store.Update(clip) {
+		t.Fatal("Expected Update to return false for non-existent clip")
+	}
+}
+
+func TestMemoryStore_EvictOldest_SkipsPinned(t *testing.T) {
+	store := NewMemoryStore()
+
+	// Add 3 clips: first two are pinned
+	for i := 0; i < 3; i++ {
+		clip := Clip{
+			Content:   "content " + string(rune('a'+i)),
+			Type:      "text",
+			Timestamp: time.Now(),
+			Pinned:    i < 2, // first two pinned
+		}
+		store.Add(clip)
+	}
+
+	// Evict should skip pinned and remove the unpinned one (clip 3, content "c")
+	evicted := store.EvictOldest()
+	if !evicted {
+		t.Fatal("Expected eviction to succeed")
+	}
+
+	if store.Count() != 2 {
+		t.Fatalf("Expected 2 clips remaining, got %d", store.Count())
+	}
+
+	// Both remaining should be pinned
+	clips := store.List(10)
+	for _, c := range clips {
+		if !c.Pinned {
+			t.Fatalf("Expected all remaining clips to be pinned, found unpinned: %s", c.Content)
+		}
+	}
+
+	// Another eviction should fail (all pinned)
+	evicted = store.EvictOldest()
+	if evicted {
+		t.Fatal("Expected eviction to fail when all clips are pinned")
+	}
+}
+
 func TestMemoryStore_Deduplication(t *testing.T) {
 	store := NewMemoryStore()
 

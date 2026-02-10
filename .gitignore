@@ -32,5 +32,11 @@ Thumbs.db
 # Logs
 *.log
 
+# Build output
+bin/
+app/ClipNest/.build/
+app/ClipNest/build/
+.swiftpm/
+
 # Temporary files
 /tmp/

@@ -8,7 +8,7 @@ import (
 // Config for the application
 type Config struct {
 	MaxMemoryClips int    `json:"max_memory_clips"` // Default: 50
-	DBPath         string `json:"db_path"`           // SQLite path
+	DBPath         string `json:"db_path"`          // SQLite path
 	SocketPath     string `json:"socket_path"`      // Unix socket path
 }
 

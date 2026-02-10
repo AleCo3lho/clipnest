@@ -2,14 +2,15 @@ package storage
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 )
 
 // Storage provides in-memory clipboard storage
 type Storage struct {
-	memory   *MemoryStore
+	memory    *MemoryStore
 	maxMemory int
-	mu       sync.RWMutex
+	mu        sync.RWMutex
 }
 
 // NewStorage creates a new in-memory storage
@@ -31,9 +32,11 @@ func (s *Storage) Add(clip Clip) (int64, error) {
 		return id, err
 	}
 
-	// Evict oldest if over limit
+	// Evict oldest unpinned if over limit
 	for s.memory.Count() > s.maxMemory {
-		s.memory.EvictOldest()
+		if !s.memory.EvictOldest() {
+			break // all remaining clips are pinned
+		}
 	}
 
 	return id, nil
@@ -70,11 +73,9 @@ func (s *Storage) Pin(id int64) error {
 		return fmt.Errorf("clip %d not found", id)
 	}
 
-	// Mark as pinned
+	// Mark as pinned and persist
 	clip.Pinned = true
-
-	// Update in memory (this is a simplified approach)
-	// In a real implementation, we'd have a separate pinned list
+	s.memory.Update(clip)
 	return nil
 }
 
@@ -89,8 +90,9 @@ func (s *Storage) Unpin(id int64) error {
 		return fmt.Errorf("clip %d not found", id)
 	}
 
-	// Unpin
+	// Unpin and persist
 	clip.Pinned = false
+	s.memory.Update(clip)
 	return nil
 }
 
@@ -108,7 +110,7 @@ func (s *Storage) Search(query string, limit int) ([]Clip, error) {
 		if len(results) >= limit {
 			break
 		}
-		if contains(clip.Content, query) {
+		if strings.Contains(clip.Content, query) {
 			results = append(results, clip)
 		}
 	}
@@ -158,19 +160,3 @@ func (s *Storage) Close() error {
 	return nil
 }
 
-// contains checks if a string contains a substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		(len(s) > len(substr) && s[:len(substr)] == substr) ||
-		(len(s) > len(substr) && s[len(s)-len(substr):] == substr) ||
-		indexOf(s, substr) >= 0)
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
-}

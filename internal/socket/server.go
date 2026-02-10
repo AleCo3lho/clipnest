@@ -11,14 +11,14 @@ import (
 
 // Server handles Unix domain socket communication
 type Server struct {
-	listener net.Listener
-	clients  map[net.Conn]bool
-	mu       sync.RWMutex
-	onCommand func(msg SocketMessage)
+	listener  net.Listener
+	clients   map[net.Conn]bool
+	mu        sync.RWMutex
+	onCommand func(conn net.Conn, msg SocketMessage)
 }
 
 // NewServer creates a new socket server
-func NewServer(path string, onCommand func(SocketMessage)) (*Server, error) {
+func NewServer(path string, onCommand func(net.Conn, SocketMessage)) (*Server, error) {
 	// Remove existing socket file
 	os.Remove(path)
 
@@ -34,8 +34,8 @@ func NewServer(path string, onCommand func(SocketMessage)) (*Server, error) {
 	}
 
 	server := &Server{
-		listener: listener,
-		clients:  make(map[net.Conn]bool),
+		listener:  listener,
+		clients:   make(map[net.Conn]bool),
 		onCommand: onCommand,
 	}
 
@@ -84,7 +84,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		// Handle command from client
 		if s.onCommand != nil {
-			s.onCommand(msg)
+			s.onCommand(conn, msg)
 		}
 	}
 
@@ -102,28 +102,40 @@ func (s *Server) Broadcast(msg SocketMessage) error {
 
 	data = append(data, '\n')
 
+	// Phase 1: iterate under RLock, collect dead clients
 	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var clientsToRemove []net.Conn
-
+	var dead []net.Conn
 	for client := range s.clients {
 		_, err := client.Write(data)
 		if err != nil {
 			fmt.Printf("Error writing to client: %v\n", err)
-			clientsToRemove = append(clientsToRemove, client)
+			dead = append(dead, client)
 		}
 	}
+	s.mu.RUnlock()
 
-	// Remove failed clients
-	s.mu.Lock()
-	for _, client := range clientsToRemove {
-		delete(s.clients, client)
-		client.Close()
+	// Phase 2: clean up dead clients under Lock
+	if len(dead) > 0 {
+		s.mu.Lock()
+		for _, client := range dead {
+			delete(s.clients, client)
+			client.Close()
+		}
+		s.mu.Unlock()
 	}
-	s.mu.Unlock()
 
 	return nil
+}
+
+// SendMessage sends a single message to a specific connection
+func SendMessage(conn net.Conn, msg SocketMessage) error {
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message: %w", err)
+	}
+	data = append(data, '\n')
+	_, err = conn.Write(data)
+	return err
 }
 
 // Close shuts down the server
