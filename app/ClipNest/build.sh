@@ -12,4 +12,6 @@ mkdir -p "$APP_DIR/MacOS"
 cp .build/release/ClipNest "$APP_DIR/MacOS/ClipNest"
 cp Resources/Info.plist "$APP_DIR/Info.plist"
 
+codesign --force --deep -s - build/ClipNest.app
+
 echo "Built: build/ClipNest.app"
