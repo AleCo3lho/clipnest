@@ -16,7 +16,10 @@ cask "clipnest-app" do
 
   postflight do
     system_command "/opt/homebrew/bin/brew",
-                   args: ["services", "start", "AleCo3lho/clipnest/clipnest"],
+                   args: ["upgrade", "AleCo3lho/clipnest/clipnest"],
+                   sudo: false
+    system_command "/opt/homebrew/bin/brew",
+                   args: ["services", "restart", "AleCo3lho/clipnest/clipnest"],
                    sudo: false
   end
 
