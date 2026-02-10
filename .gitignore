@@ -1,6 +1,6 @@
 # Binaries
-clipnest
-clipnestd
+/clipnest
+/clipnestd
 *.exe
 *.dll
 *.so

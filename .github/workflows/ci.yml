@@ -2,39 +2,71 @@ name: CI
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main]
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
 
 jobs:
-  test:
+  go:
+    name: Go
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.23'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y sqlite3 gcc
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Files not formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
 
-    - name: Run tests
-      run: go test -v -race -cover ./...
+      - name: Vet
+        run: go vet ./...
 
-    - name: Build
-      run: |
-        go build -v ./...
-        go build -v -o clipnest ./cmd/clipnest
-        go build -v -o clipnestd ./cmd/clipnestd
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.62.2
 
-    - name: Upload coverage
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage.txt
-        flags: unittests
+      - name: Test
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Build
+        run: |
+          go build -v -o clipnest ./cmd/clipnest
+          go build -v -o clipnestd ./cmd/clipnestd
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.txt
+          flags: unittests
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  swift:
+    name: Swift
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Swift app
+        working-directory: app/ClipNest
+        run: swift build
+
+      - name: Check SwiftFormat
+        run: |
+          brew install swiftformat
+          swiftformat --lint app/ClipNest/Sources
