@@ -43,7 +43,7 @@ struct ClipListView: View {
                     }
             }
             .padding(10)
-            .glassEffect(.regular, in: .rect(cornerRadius: 10))
+            .modifier(GlassBackgroundModifier(cornerRadius: 10))
             .padding(.horizontal, 12)
             .padding(.top, 12)
             .padding(.bottom, 8)

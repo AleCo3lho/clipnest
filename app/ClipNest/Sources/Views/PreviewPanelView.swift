@@ -31,7 +31,7 @@ struct PreviewPanelView: View {
             Divider()
             content
         }
-        .glassEffect(.regular, in: .rect(cornerRadius: 12))
+        .modifier(GlassBackgroundModifier(cornerRadius: 12))
     }
 
     private var header: some View {

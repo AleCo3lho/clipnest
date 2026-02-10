@@ -136,4 +136,5 @@ func (m *MemoryStore) Clear() {
 
 	m.elements = make(map[int64]*list.Element)
 	m.order = list.New()
+	m.nextID = 1
 }

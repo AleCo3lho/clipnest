@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "ClipNest",
-    platforms: [.macOS(.v26)],
+    platforms: [.macOS(.v15)],
     targets: [
         .executableTarget(
             name: "ClipNest",

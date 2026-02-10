@@ -41,7 +41,7 @@ struct ClipRowView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular, in: .rect(cornerRadius: 12))
+        .modifier(GlassBackgroundModifier(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(.primary.opacity(isHovered ? 0.2 : 0), lineWidth: 1)

@@ -8,7 +8,7 @@ cask "clipnest-app" do
   homepage "https://github.com/AleCo3lho/clipnest"
 
   depends_on formula: "AleCo3lho/clipnest/clipnest"
-  depends_on macos: ">= :tahoe"
+  depends_on macos: ">= :sequoia"
 
   no_quarantine
 
