@@ -159,4 +159,3 @@ func (s *Storage) GetPinned() ([]Clip, error) {
 func (s *Storage) Close() error {
 	return nil
 }
-

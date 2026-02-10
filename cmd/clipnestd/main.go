@@ -101,7 +101,7 @@ func main() {
 			sendOK(conn)
 
 		case "clear":
-			store.Clear()
+			_ = store.Clear()
 			sendOK(conn)
 
 		default:
@@ -130,7 +130,7 @@ func main() {
 
 		// Broadcast to connected clients
 		stored, _ := store.Get(id)
-		server.Broadcast(socket.SocketMessage{
+		_ = server.Broadcast(socket.SocketMessage{
 			Type: "new_clip",
 			Data: clipToData(stored),
 		})
@@ -188,17 +188,17 @@ func sendClipList(conn net.Conn, clips []storage.Clip) {
 		},
 	}
 	data, _ := json.Marshal(resp)
-	socket.SendMessage(conn, socket.SocketMessage{Type: "response", Data: json.RawMessage(data)})
+	_ = socket.SendMessage(conn, socket.SocketMessage{Type: "response", Data: json.RawMessage(data)})
 }
 
 func sendOK(conn net.Conn) {
 	resp := socket.ResponseMessage{Success: true}
 	data, _ := json.Marshal(resp)
-	socket.SendMessage(conn, socket.SocketMessage{Type: "response", Data: json.RawMessage(data)})
+	_ = socket.SendMessage(conn, socket.SocketMessage{Type: "response", Data: json.RawMessage(data)})
 }
 
 func sendError(conn net.Conn, errMsg string) {
 	resp := socket.ResponseMessage{Success: false, Error: errMsg}
 	data, _ := json.Marshal(resp)
-	socket.SendMessage(conn, socket.SocketMessage{Type: "response", Data: json.RawMessage(data)})
+	_ = socket.SendMessage(conn, socket.SocketMessage{Type: "response", Data: json.RawMessage(data)})
 }

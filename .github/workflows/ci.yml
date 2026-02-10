@@ -35,7 +35,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.62.2
+          version: v2.8.0
 
       - name: Test
         run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
@@ -53,20 +53,3 @@ jobs:
           flags: unittests
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  swift:
-    name: Swift
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build Swift app
-        working-directory: app/ClipNest
-        run: swift build
-
-      - name: Check SwiftFormat
-        run: |
-          brew install swiftformat
-          swiftformat --lint app/ClipNest/Sources

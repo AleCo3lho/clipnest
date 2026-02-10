@@ -40,7 +40,7 @@ func (c *Client) Send(msg SocketMessage) error {
 
 // Receive reads one JSON response from the daemon
 func (c *Client) Receive() (SocketMessage, error) {
-	c.conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	_ = c.conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 
 	if !c.scanner.Scan() {
 		if err := c.scanner.Err(); err != nil {

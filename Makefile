@@ -18,7 +18,7 @@ lint:
 
 ## lint-install: Install golangci-lint (pinned version)
 lint-install:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(go env GOPATH)/bin" v1.62.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(go env GOPATH)/bin" v2.8.0
 
 ## test: Run tests with race detection and coverage
 test:
