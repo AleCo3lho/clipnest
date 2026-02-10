@@ -53,3 +53,20 @@ jobs:
           flags: unittests
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  swift:
+    name: Swift
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v3
+        with:
+          swift-version: "6.2"
+
+      - name: Build Swift app
+        working-directory: app/ClipNest
+        run: swift build
