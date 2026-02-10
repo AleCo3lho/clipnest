@@ -10,6 +10,8 @@ cask "clipnest-app" do
   depends_on formula: "AleCo3lho/clipnest/clipnest"
   depends_on macos: ">= :tahoe"
 
+  no_quarantine
+
   app "ClipNest.app"
 
   postflight do
