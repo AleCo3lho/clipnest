@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PreviewPanelView: View {
     let clip: Clip
+    let now: Date
     let onCopy: () -> Void
 
     private let maxDisplayLength = 5000
@@ -62,7 +63,7 @@ struct PreviewPanelView: View {
             }
 
             HStack(spacing: 8) {
-                Text(clip.date, style: .relative)
+                Text(RelativeTimeFormatter.string(for: clip.date, relativeTo: now))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
 
